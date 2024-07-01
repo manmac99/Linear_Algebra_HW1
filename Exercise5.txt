@@ -1,0 +1,42 @@
+(*Original face and feature coordinates*)
+face = {{0, 7}, {0, 0}, {6, 0}, {6, 7}, {0, 7}, {1, 7}, {1, 9}, {2, 
+    9}, {2, 7}, {4, 7}, {4, 9}, {5, 9}, {5, 7}};
+eye1 = {{1, 4}, {1, 5}, {2, 5}, {2, 4}, {1, 4}};
+eye2 = {{4, 4}, {4, 5}, {5, 5}, {5, 4}, {4, 4}};
+nose = {{3, 4}, {2, 3}, {4, 3}, {3, 4}};
+mouse = {{2, 1}, {4, 1}, {4, 2}, {2, 2}, {2, 1}};
+
+(*Function to convert to homogeneous coordinates*)
+HGMatrix[mat_] := 
+ Transpose[Append[Transpose[mat], ConstantArray[1, Length[mat]]]]
+
+facemat = HGMatrix[face];
+eye1mat = HGMatrix[eye1];
+eye2mat = HGMatrix[eye2];
+nosemat = HGMatrix[nose];
+mousemat = HGMatrix[mouse];
+
+(*Rotation matrix for 270 degrees (3\[Pi]/2 radians) counterclockwise*)
+theta = Pi/4;
+rotationMatrix = {{Cos[theta], -Sin[theta], 0}, {Sin[theta], 
+    Cos[theta], 0}, {0, 0, 1}};
+
+(*Apply the rotation transformation*)
+facetrans = Transpose[rotationMatrix . Transpose[facemat]];
+eye1trans = Transpose[rotationMatrix . Transpose[eye1mat]];
+eye2trans = Transpose[rotationMatrix . Transpose[eye2mat]];
+nosetrans = Transpose[rotationMatrix . Transpose[nosemat]];
+mousetrans = Transpose[rotationMatrix . Transpose[mousemat]];
+
+(*Function to plot the image*)
+PlotImage[mat_, xmin_, xmax_, ymin_, ymax_] := 
+ ListPlot[Table[{mat[[i, 1]], mat[[i, 2]]}, {i, 1, Length[mat]}], 
+  Joined -> True, Axes -> Automatic, AxesOrigin -> {0, 0}, 
+  PlotRange -> {{xmin, xmax}, {ymin, ymax}}]
+
+(*Plot the transformed face and features*)
+Show[PlotImage[facetrans, -10, 20, -20, 10], 
+ PlotImage[eye1trans, -10, 20, -20, 10], 
+ PlotImage[eye2trans, -10, 20, -20, 10], 
+ PlotImage[nosetrans, -10, 20, -20, 10], 
+ PlotImage[mousetrans, -10, 20, -20, 10]]

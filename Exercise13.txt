@@ -1,0 +1,67 @@
+(* Original face and feature coordinates *)
+face = {{0, 7}, {0, 0}, {6, 0}, {6, 7}, {0, 7}, {1, 7}, {1, 9}, {2, 9}, {2, 7}, {4, 7}, {4, 9}, {5, 9}, {5, 7}};
+eye1 = {{1, 4}, {1, 5}, {2, 5}, {2, 4}, {1, 4}};
+eye2 = {{4, 4}, {4, 5}, {5, 5}, {5, 4}, {4, 4}};
+nose = {{3, 4}, {2, 3}, {4, 3}, {3, 4}};
+mouse = {{2, 1}, {4, 1}, {4, 2}, {2, 2}, {2, 1}};
+
+(* Function to convert to homogeneous coordinates *)
+HGMatrix[mat_] := Transpose[Append[Transpose[mat], ConstantArray[1, Length[mat]]]]
+
+facemat = HGMatrix[face];
+eye1mat = HGMatrix[eye1];
+eye2mat = HGMatrix[eye2];
+nosemat = HGMatrix[nose];
+mousemat = HGMatrix[mouse];
+
+(* Define the rotation angles *)
+alpha = Pi/4; (* 45 degrees *)
+beta = Pi/6;  (* 30 degrees *)
+
+(* Define the rotation matrices for alpha and beta *)
+Ralpha = {{Cos[alpha], -Sin[alpha], 0}, {Sin[alpha], Cos[alpha], 0}, {0, 0, 1}};
+Rbeta = {{Cos[beta], -Sin[beta], 0}, {Sin[beta], Cos[beta], 0}, {0, 0, 1}};
+
+(* Multiply the matrices to get the combined rotation *)
+RalphaRbeta = Simplify[Ralpha . Rbeta];
+
+(* Apply the combined rotation transformation *)
+facetrans = Transpose[RalphaRbeta . Transpose[facemat]];
+eye1trans = Transpose[RalphaRbeta . Transpose[eye1mat]];
+eye2trans = Transpose[RalphaRbeta . Transpose[eye2mat]];
+nosetrans = Transpose[RalphaRbeta . Transpose[nosemat]];
+mousetrans = Transpose[RalphaRbeta . Transpose[mousemat]];
+
+(* Define the rotation matrix for alpha+beta directly *)
+Ralphabeta = {{Cos[alpha + beta], -Sin[alpha + beta], 0}, {Sin[alpha + beta], Cos[alpha + beta], 0}, {0, 0, 1}};
+
+(* Display the results of the matrix multiplication *)
+MatrixForm[RalphaRbeta]
+MatrixForm[Ralphabeta]
+
+(* Extract the formulas for Cos[α + β] and Sin[α + β] *)
+cosAlphaBeta = RalphaRbeta[[1, 1]];
+sinAlphaBeta = RalphaRbeta[[2, 1]];
+
+(* Verify the formulas match *)
+{cosAlphaBeta == Cos[alpha + beta], sinAlphaBeta == Sin[alpha + beta]}
+
+(* Function to plot the image *)
+PlotImage[mat_, xmin_, xmax_, ymin_, ymax_] := 
+ ListPlot[Table[{mat[[i, 1]], mat[[i, 2]]}, {i, 1, Length[mat]}], 
+  Joined -> True, Axes -> Automatic, AxesOrigin -> {0, 0}, 
+  PlotRange -> {{xmin, xmax}, {ymin, ymax}}]
+
+(* Plot the original and transformed face and features *)
+Show[
+ PlotImage[facemat, -10, 20, -20, 20], 
+ PlotImage[eye1mat, -10, 20, -20, 20], 
+ PlotImage[eye2mat, -10, 20, -20, 20], 
+ PlotImage[nosemat, -10, 20, -20, 20], 
+ PlotImage[mousemat, -10, 20, -20, 20], 
+ PlotImage[facetrans, -10, 20, -20, 20], 
+ PlotImage[eye1trans, -10, 20, -20, 20], 
+ PlotImage[eye2trans, -10, 20, -20, 20], 
+ PlotImage[nosetrans, -10, 20, -20, 20], 
+ PlotImage[mousetrans, -10, 20, -20, 20]
+]
