@@ -1,0 +1,59 @@
+(*Original face and feature coordinates*)
+face = {{0, 7}, {0, 0}, {6, 0}, {6, 7}, {0, 7}, {1, 7}, {1, 9}, {2, 
+    9}, {2, 7}, {4, 7}, {4, 9}, {5, 9}, {5, 7}};
+eye1 = {{1, 4}, {1, 5}, {2, 5}, {2, 4}, {1, 4}};
+eye2 = {{4, 4}, {4, 5}, {5, 5}, {5, 4}, {4, 4}};
+nose = {{3, 4}, {2, 3}, {4, 3}, {3, 4}};
+mouse = {{2, 1}, {4, 1}, {4, 2}, {2, 2}, {2, 1}};
+
+(*Function to convert to homogeneous coordinates*)
+HGMatrix[mat_] := 
+ Transpose[Append[Transpose[mat], ConstantArray[1, Length[mat]]]]
+
+(*Convert the list to homogeneous coordinates*)
+facemat = HGMatrix[face];
+eye1mat = HGMatrix[eye1];
+eye2mat = HGMatrix[eye2];
+nosemat = HGMatrix[nose];
+mousemat = HGMatrix[mouse];
+
+(*Function to plot the image*)
+PlotImage[mat_, xmin_, xmax_, ymin_, ymax_] := 
+ ListPlot[Table[{mat[[i, 1]], mat[[i, 2]]}, {i, 1, Length[mat]}], 
+  Joined -> True, AxesOrigin -> {0, 0}, 
+  PlotRange -> {{xmin, xmax}, {ymin, ymax}}]
+
+(*Function to plot the image without axes*)
+PlotImageN[mat_, xmin_, xmax_, ymin_, ymax_] := 
+ ListPlot[Table[{mat[[i, 1]], mat[[i, 2]]}, {i, 1, Length[mat]}], 
+  Joined -> True, Axes -> False, AxesOrigin -> {0, 0}, 
+  PlotRange -> {{xmin, xmax}, {ymin, ymax}}]
+
+(*Define the function for rotating and translating the image*)
+moveAndRotateImage[r_, theta_] := 
+ Module[{rotationMatrix, translationMatrix, transformationMatrix, 
+   facetrans, eye1trans, eye2trans, nosetrans, mousetrans}, 
+  rotationMatrix = {{Cos[theta], -Sin[theta], 0}, {Sin[theta], 
+     Cos[theta], 0}, {0, 0, 1}};
+  translationMatrix = {{1, 0, r  Cos[theta]}, {0, 1, 
+     r  Sin[theta]}, {0, 0, 1}};
+  transformationMatrix = translationMatrix . rotationMatrix;
+  facetrans = Transpose[transformationMatrix . Transpose[facemat]];
+  eye1trans = Transpose[transformationMatrix . Transpose[eye1mat]];
+  eye2trans = Transpose[transformationMatrix . Transpose[eye2mat]];
+  nosetrans = Transpose[transformationMatrix . Transpose[nosemat]];
+  mousetrans = Transpose[transformationMatrix . Transpose[mousemat]];
+  Show[PlotImageN[facetrans, -50, 50, -50, 50], 
+   PlotImageN[eye1trans, -50, 50, -50, 50], 
+   PlotImageN[eye2trans, -50, 50, -50, 50], 
+   PlotImageN[nosetrans, -50, 50, -50, 50], 
+   PlotImageN[mousetrans, -50, 50, -50, 50]]]
+
+(*Use Manipulate to rotate and translate the image*)
+Manipulate[
+ moveAndRotateImage[r, theta], {r, 0.01, 50, 0.01}, {theta, 0, 2   Pi,
+   0.002}]
+
+(*Use Animate to rotate and translate the image*)
+Animate[moveAndRotateImage[r, theta], {r, 0.01, 50, 0.01}, {theta, 0, 
+  2   Pi, 0.002}]
